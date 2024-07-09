@@ -1,22 +1,19 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Ensures git is installed.
-  package:
+  ansible.builtin.package:
     name: git
     state: present
 
 - name: Download sources from repository
-  git:
+  ansible.builtin.git:
     repo: "{{ sympa_repository_url }}"
     dest: "{{ sympa_source_directory }}"
-    force: yes
+    force: true
     version: "{{ sympa_repository_version }}"
   become_user: "{{ sympa_unix_user }}"
   vars:
     ansible_ssh_pipelining: true
 
 - name: Import tasks to install Perl modules
-  import_tasks: perl-modules.yml
+  ansible.builtin.import_tasks: perl-modules.yml
     

@@ -220,7 +220,7 @@ You have to create these fields separately, e.g.:
         db: sympa
         query: 'ALTER TABLE subscriber_table ADD COLUMN IF NOT EXISTS
             unsubscribe_link text'
-      become: yes
+      become: true
       become_user: postgres
       vars:
         ansible_ssh_pipelining: true

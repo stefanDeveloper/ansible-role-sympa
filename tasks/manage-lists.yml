@@ -1,20 +1,17 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Query information about the Sympa user
-  getent:
+  ansible.builtin.getent:
     database: passwd
     key: "{{ sympa_unix_user }}"
     split: ":"
   register: sympa_user_info
 
 - name: Determine home directory of the Sympa user
-  set_fact:
+  ansible.builtin.set_fact:
     sympa_unix_user_home: "{{ getent_passwd[sympa_unix_user][4] }}"
 
 - name: Save XML as file
-  copy:
+  ansible.builtin.copy:
     content:  |
       <?xml version="1.0" encoding="utf-8"?>
       <list>
@@ -37,7 +34,7 @@
   with_items: "{{ sympa_lists }}"
       
 - name: Add list
-  command: |-
+  ansible.builtin.command: |-
     {{ sympa_command }} --create_list {% if 'robot' in item %}--robot={{ item.robot }}{% endif %} --input_file={{ sympa_unix_user_home }}/{{ item.name }}.xml
   with_items: "{{ sympa_lists }}"
   become_user: "{{ sympa_unix_user }}"

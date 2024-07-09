@@ -1,9 +1,6 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Ensure that installation directory exists
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ sympa_installation_directory }}"
     owner: "{{ sympa_unix_user }}"
@@ -11,7 +8,7 @@
     mode: 0755
 
 - name: Ensure that configuration directory exists
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ sympa_configuration_directory }}"
     owner: "{{ sympa_unix_user }}"
@@ -19,7 +16,7 @@
     mode: 0755
 
 - name: Install stuff we need for compiling
-  package:
+  ansible.builtin.package:
     name:
       - gcc
       - "{{ sympa_make_package }}"
@@ -28,7 +25,7 @@
       - "{% if ansible_os_family == 'Suse' %}gettext-tools{% elif ansible_os_family == 'RedHat' %}gettext-devel{% elif ansible_os_family == 'Alpine' %}gettext-dev{% else %}gettext{% endif %}"
 
 - name: Run autoconf
-  command: autoreconf -i
+  ansible.builtin.command: autoreconf -i
   args:
     chdir: "{{ sympa_source_directory }}"
   become_user: "{{ sympa_unix_user }}"
@@ -37,15 +34,15 @@
   when: sympa_installation_method != 'source' or sympa_source_patches | count
 
 - name: Add symlink for pod2man on Arch Linux
-  file:
+  ansible.builtin.file:
     state: link
     src: "/usr/bin/core_perl/pod2man"
     dest: "/usr/local/bin/pod2man"
-  become: yes
+  become: true
   when: ansible_os_family == 'Archlinux'
 
 - name: Configure Sympa
-  command: |
+  ansible.builtin.command: |
     ./configure --prefix="{{ sympa_installation_directory }}"
     --with-lockdir={% if ansible_os_family == 'FreeBSD' %}/var/spool/lock{%else %}/var/lock{% endif %}
     {% if ansible_os_family != 'FreeBSD' %} --without-initdir{% else %} --with-initdir=/etc/rc.d{% endif %}
@@ -61,7 +58,7 @@
     ansible_ssh_pipelining: true  
 
 - name: Make Sympa
-  command: make
+  ansible.builtin.command: make
   args:
     chdir: "{{ sympa_source_directory }}"
   become_user: "{{ sympa_unix_user }}"
@@ -69,7 +66,7 @@
     ansible_ssh_pipelining: true
 
 - name: Install Sympa
-  command: make install
+  ansible.builtin.command: make install
   args:
     chdir: "{{ sympa_source_directory }}"
   become_user: "{{ sympa_unix_user }}"
@@ -81,11 +78,11 @@
     - restart sympasoap
 
 - name: Set variable for Sympa command
-  set_fact:
+  ansible.builtin.set_fact:
     sympa_command: "{{ sympa_installation_directory }}/bin/sympa.pl"
 
 - name: Ensure that /usr/local/bin exists (CentOS 8)
-  file:
+  ansible.builtin.file:
     state: directory
     path: /usr/local/bin
     owner: root
@@ -96,8 +93,8 @@
     - ansible_distribution_major_version|int == 8
 
 - name: Install alias for Sympa command
-  file:
+  ansible.builtin.file:
     state: link
     src: "{{ sympa_command }}"
     dest: /usr/local/bin/sympa
-  become: yes
+  become: true

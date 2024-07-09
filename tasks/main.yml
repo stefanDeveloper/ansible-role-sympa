@@ -1,9 +1,6 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Include variables depending on OS details
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - files:
         - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
@@ -15,13 +12,13 @@
     - always
 
 - name: Check for valid installation method
-  assert:
+  ansible.builtin.assert:
     that:
       sympa_installation_method in ['none', 'package', 'repository', 'source', 'sync']
   tags: sympa
 
 - name: Check for mandatory parameter
-  assert:
+  ansible.builtin.assert:
     that:
        sympa_sync_directory is defined
   when: sympa_installation_method == 'sync'
@@ -29,13 +26,13 @@
     - sympa
 
 - name: Install prerequisites for compiling Sympa
-  import_tasks: compile-prereqs.yml
+  ansible.builtin.import_tasks: compile-prereqs.yml
   when: sympa_installation_method != 'package'
   tags:
     - sympa
 
 - name: Install database driver for Perl (PostgreSQL)
-  package:
+  ansible.builtin.package:
     name: "{{ sympa_database_driver_postgresql }}"
   when:
     - sympa_installation_method != 'package'
@@ -45,7 +42,7 @@
     - sympa-database-driver
 
 - name: Install database driver for Perl (MySQL / MariaDB)
-  package:
+  ansible.builtin.package:
     name: "{{ sympa_database_driver_mysql }}"
   when:
     - sympa_installation_method != 'package'
@@ -55,7 +52,7 @@
     - sympa-database-driver
 
 - name: Install database driver for Perl (SQLite3)
-  package:
+  ansible.builtin.package:
     name: "{{ sympa_database_driver_sqlite }}"
   when:
     - sympa_installation_method != 'package'
@@ -65,7 +62,7 @@
     - sympa-database-driver
 
 - name: Install database driver for ODBC
-  package:
+  ansible.builtin.package:
     name: "{{ sympa_database_driver_odbc }}"
   when: sympa_install_odbc_driver
   tags:
@@ -73,19 +70,19 @@
     - sympa-database-driver
 
 - name: Run tasks specific for installation method
-  include_tasks:
-    file: "{{ sympa_installation_method }}.yml"
+  ansible.builtin.include_tasks:
+    ansible.builtin.file: "{{ sympa_installation_method }}.yml"
   when: sympa_installation_method != 'none'
   tags:
     - sympa
 
 - name: Configure, make and install Sympa
-  import_tasks: config-make-install.yml
+  ansible.builtin.import_tasks: config-make-install.yml
   when: sympa_installation_method not in ['none', 'package']
   notify: restart sympa
 
 - name: Enable syslog
-  import_tasks: syslog.yml
+  ansible.builtin.import_tasks: syslog.yml
   when:
     - sympa_installation_method != 'package'
     - ansible_os_family not in ['Alpine', 'Archlinux', 'FreeBSD']
@@ -93,7 +90,7 @@
     - sympa-syslog
 
 - name: Create directory for file with list aliases
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ sympa_config_sendmail_aliases.split('/')[:-1] | join('/') }}"
     owner: "{{ sympa_unix_user }}"
@@ -101,7 +98,7 @@
     mode: 0755
 
 - name: Create file for list aliases
-  file:
+  ansible.builtin.file:
     state: touch
     path: "{{ sympa_config_sendmail_aliases }}"
     owner: "{{ sympa_unix_user }}"
@@ -110,7 +107,7 @@
     modification_time: preserve
 
 - name: Create Sympa configuration directory
-  file:
+  ansible.builtin.file:
     state: directory
     path: /etc/sympa
     owner: "{{ sympa_unix_user }}"
@@ -118,7 +115,7 @@
     mode: 0755
 
 - name: Create configuration file sympa.conf
-  template:
+  ansible.builtin.template:
     src: sympa.conf.j2
     dest: /etc/sympa/sympa.conf
     owner: "{{ sympa_unix_user }}"
@@ -135,7 +132,7 @@
     - sympa-conf
 
 - name: Create configuration files for robots on request
-  import_tasks: robots.yml
+  ansible.builtin.import_tasks: robots.yml
   when: sympa_robots | default([]) | count > 0
   tags:
     - sympa
@@ -143,7 +140,7 @@
     - sympa-robots
 
 - name: Create configuration file auth.conf
-  template:
+  ansible.builtin.template:
     src: auth.conf.j2
     dest: /etc/sympa/auth.conf
     owner: "{{ sympa_unix_user }}"
@@ -160,7 +157,7 @@
     - sympa-auth
 
 - name: Create configuration file edit_list.conf
-  template:
+  ansible.builtin.template:
     src: edit_list.conf.j2
     dest: /etc/sympa/edit_list.conf
     owner: "{{ sympa_unix_user }}"
@@ -176,7 +173,7 @@
     - sympa-edit-list
 
 - name: Create configuration file topics.conf
-  template:
+  ansible.builtin.template:
     src: topics.conf.j2
     dest: /etc/sympa/topics.conf
     owner: "{{ sympa_unix_user }}"
@@ -194,27 +191,27 @@
     - sympa-conf
 
 - name: Email templates
-  import_tasks: email-templates.yml
+  ansible.builtin.import_tasks: email-templates.yml
   when: sympa_email_templates | count > 0
   tags:
     - sympa
     - sympa-email-templates
 
 - name: Web templates
-  import_tasks: web-templates.yml
+  ansible.builtin.import_tasks: web-templates.yml
   when: sympa_web_templates | count > 0
   tags:
     - sympa
     - sympa-web-templates
 
 - name: Custom scenari
-  import_tasks: scenari.yml
+  ansible.builtin.import_tasks: scenari.yml
   tags:
     - sympa
     - sympa-scenari
 
 - name: Create configuration file create_list.conf
-  template:
+  ansible.builtin.template:
     src: create_list.conf.j2
     dest: /etc/sympa/create_list.conf
     owner: "{{ sympa_unix_user }}"
@@ -228,13 +225,13 @@
     - sympa-conf
 
 - name: Add custom list templates
-  import_tasks: create-list-templates.yml
+  ansible.builtin.import_tasks: create-list-templates.yml
   tags:
     - sympa
     - sympa-list-templates
 
 - name: Run upgrade command
-  command: "{{ sympa_command }} --upgrade"
+  ansible.builtin.command: "{{ sympa_command }} --upgrade"
   become_user: "{{ sympa_unix_user }}"
   vars:
     ansible_ssh_pipelining: true
@@ -244,7 +241,7 @@
     - sympa
 
 - name: Add unit files for sympa services
-  template:
+  ansible.builtin.template:
     src: "{{ item }}.service.j2"
     dest: "/etc/systemd/system/{{ item }}.service"
     owner: root
@@ -261,8 +258,8 @@
     - sympa-units
   
 - name: Reload systemd if necessary
-  systemd:
-    daemon_reload: yes
+  ansible.builtin.systemd:
+    daemon_reload: true
   with_items: "{{ sympa_services }}"
   when:
     - ansible_service_mgr == "systemd"
@@ -271,19 +268,19 @@
     - sympa
 
 - name: Ensure that Sympa is enabled and started
-  service:
+  ansible.builtin.service:
     name: sympa
-    enabled: yes
+    enabled: true
     state: started
   tags:
     - sympa
 
 - name: Manage lists
-  import_tasks: manage-lists.yml
+  ansible.builtin.import_tasks: manage-lists.yml
   when: sympa_lists | count > 0
 
 - name: WWSympa
-  import_tasks: wwsympa.yml
+  ansible.builtin.import_tasks: wwsympa.yml
   when:
     - sympa_installation_method != 'package'
     - sympa_web_fcgi_enabled
@@ -292,7 +289,7 @@
     - wwsympa
 
 - name: SOAP
-  import_tasks: soap.yml
+  ansible.builtin.import_tasks: soap.yml
   when:
     - sympa_installation_method != 'package'
     - sympa_soap_fcgi_enabled

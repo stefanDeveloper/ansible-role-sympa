@@ -1,16 +1,13 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Install FCGI wrapper
-  package:
+  ansible.builtin.package:
     name: spawn-fcgi
   tags:
     - sympa
     - wwsympa
 
 - name: Create systemd unit for WWSympa
-  template:
+  ansible.builtin.template:
     src: wwsympa.service.j2
     dest: /etc/systemd/system/wwsympa.service
     owner: root
@@ -23,15 +20,15 @@
     - wwsympa
 
 - name: Reload systemd if necessary
-  systemd:
-    daemon_reload: yes
+  ansible.builtin.systemd:
+    daemon_reload: true
   when:
     - wwsympa_unit_file.changed
 
 - name: Ensure that WWSympa is enabled and started
-  service:
+  ansible.builtin.service:
     name: wwsympa
-    enabled: yes
+    enabled: true
     state: started
   tags:
     - sympa

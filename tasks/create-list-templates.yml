@@ -1,9 +1,6 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Create directory
-  file:
+  ansible.builtin.file:
     state: directory
     path: "/etc/sympa/create_list_templates/{{ item }}"
     owner: sympa
@@ -12,7 +9,7 @@
   loop: "{{ sympa_list_templates }}"
 
 - name: Add template files
-  template:
+  ansible.builtin.template:
     src: "lists/{{ item[0] }}/{{ item[1] }}.tt2.j2"
     dest: "/etc/sympa/create_list_templates/{{ item[0] }}/{{ item[1] }}.tt2"
     owner: sympa

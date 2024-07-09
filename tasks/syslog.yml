@@ -1,19 +1,19 @@
 ---
 
 - name: Install logging tools
-  package:
+  ansible.builtin.package:
     name:
       - rsyslog
       - logrotate
 
 - name: Ensure that rsyslog is enabled and running
-  service:
+  ansible.builtin.service:
     name: rsyslog
     state: started
-    enabled: yes
+    enabled: true
 
 - name: Create sympa log file
-  file:
+  ansible.builtin.file:
     dest: /var/log/sympa.log
     state: touch
     mode: 0640
@@ -24,7 +24,7 @@
   tags: syslog
   
 - name: Install custom rsyslog conf file
-  template:
+  ansible.builtin.template:
     src: syslog.conf.j2
     dest: /etc/rsyslog.d/sympa.conf
     owner: root
@@ -34,7 +34,7 @@
   notify: restart rsyslog
 
 - name: Configure logrotate
-  template:
+  ansible.builtin.template:
     src: logrotate.conf.j2
     dest: /etc/logrotate.d/sympa
     owner: root

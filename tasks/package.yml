@@ -1,9 +1,6 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Preseed values for installation
-  debconf:
+  ansible.builtin.debconf:
     name: "sympa"
     question: "{{ item.name | default('sympa') }}/{{ item.question }}"
     value: "{{ item.value }}"
@@ -32,7 +29,7 @@
     - preseed
 
 - name: Ensure that dbconfig is installed
-  apt:
+  ansible.builtin.apt:
     name: dbconfig-common
   when: ansible_os_family == 'Debian'
   tags:
@@ -40,7 +37,7 @@
     - dbconfig
 
 - name: Create configuration file for dbconfig
-  template:
+  ansible.builtin.template:
     src: dbconfig-common.j2
     dest: /etc/dbconfig-common/sympa.conf
     owner: root
@@ -53,16 +50,16 @@
     - dbconfig
 
 - name: Install Sympa from distribution package
-  package:
+  ansible.builtin.package:
     name: sympa
-  become: yes
+  become: true
   when: sympa_package_file is not defined
   register: sympa_package_distribution_results
   tags:
     - sympa
 
 - name: Create temporary directory for package file
-  tempfile:
+  ansible.builtin.tempfile:
     state: directory
   register: sympa_tempdir
   when: sympa_package_file is defined
@@ -70,7 +67,7 @@
     - sympa
 
 - name: Copy package file to target
-  copy:
+  ansible.builtin.copy:
     src: "{{ sympa_package_file }}"
     dest: "{{ sympa_tempdir.path }}/{{ sympa_package_file | basename }}"
   when:
@@ -80,7 +77,7 @@
     - sympa
 
 - name: Install Sympa from package file (Debian)
-  apt:
+  ansible.builtin.apt:
     deb: "{{ sympa_tempdir.path }}/{{ sympa_package_file | basename }}"
   when:
     - sympa_package_file is defined
@@ -91,11 +88,11 @@
     - sympa
 
 - name: Adjust number of FCGI instances
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "/etc/default/sympa"
     regexp: "^{{ item.name }}="
     line: "{{ item.name }}={{ item.value }}"
-    create: yes
+    create: true
     owner: root
     group: root
     mode: '0644'
@@ -110,5 +107,5 @@
   when: ansible_os_family == 'Debian'
 
 - name: Set variable for Sympa command
-  set_fact:
+  ansible.builtin.set_fact:
     sympa_command: "{{ sympa_package_command }}"

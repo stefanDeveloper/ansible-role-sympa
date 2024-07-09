@@ -1,14 +1,11 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Check if tarball is already present
-  stat:
+  ansible.builtin.stat:
     path: "{{ sympa_source_directory }}/sympa-{{ sympa_source_version }}.tar.gz"
   register: sympa_tarball
 
 - name: Download sources
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ sympa_source_url }}"
     dest: "{{ sympa_source_directory }}"
     owner: "{{ sympa_unix_user }}"
@@ -16,20 +13,20 @@
   when: not sympa_tarball.stat.exists
 
 - name: Install GNU tar on Alpine Linux
-  package:
+  ansible.builtin.package:
     name: tar
   when: ansible_os_family == 'Alpine'
 
 - name: Install GNU tar on FreeBSD
-  package:
+  ansible.builtin.package:
     name: gtar
   when: ansible_os_family == 'FreeBSD'
 
 - name: Unpack the tarball
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ sympa_source_directory }}/sympa-{{ sympa_source_version }}.tar.gz"
     dest: "{{ sympa_source_directory }}"
-    remote_src: yes
+    remote_src: true
   become: true
   become_user: "{{ sympa_unix_user }}"
   vars:
@@ -37,20 +34,20 @@
   ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Adjust value for source directory
-  set_fact:
+  ansible.builtin.set_fact:
     sympa_source_directory: "{{ sympa_source_directory }}/sympa-{{ sympa_source_version }}"
 
 - name: Ensure that patch binary is installed
-  package:
+  ansible.builtin.package:
     name: patch
   when: sympa_source_patches | count
 
 - name: Apply patches
-  patch:
+  ansible.builtin.patch:
     src: "{{ item }}"
     basedir: "{{ sympa_source_directory }}"
     strip: 1
   with_items: "{{ sympa_source_patches }}"
 
 - name: Import tasks to install Perl modules
-  import_tasks: perl-modules.yml
+  ansible.builtin.import_tasks: perl-modules.yml

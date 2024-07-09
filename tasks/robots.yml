@@ -1,9 +1,6 @@
 ---
-# Copyright (C) 2020-2022 Stefan Hornburg (Racke) <racke@linuxia.de>
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 - name: Create directory for robots
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ sympa_configuration_directory }}/{{ item.domain }}"
     owner: "{{ sympa_unix_user }}"
@@ -13,7 +10,7 @@
   loop: "{{ sympa_robots }}"
 
 - name: Create list data directory for robots
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ sympa_list_home_directory }}/{{ item.domain }}"
     owner: "{{ sympa_unix_user }}"
@@ -23,7 +20,7 @@
   loop: "{{ sympa_robots }}"
 
 - name: Create list data directory for robots
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ sympa_list_home_directory }}/{{ item.domain }}"
     owner: "{{ sympa_unix_user }}"
@@ -33,7 +30,7 @@
   loop: "{{ sympa_robots }}"
 
 - name: Create configuration file
-  template:
+  ansible.builtin.template:
     src: robot.conf.j2
     dest: "{{ sympa_configuration_directory }}/{{ item.domain }}/robot.conf"
     owner: "{{ sympa_unix_user }}"
